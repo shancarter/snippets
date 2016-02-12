@@ -1,0 +1,782 @@
+---
+title: interior and exterior lines
+tags: topojson
+---
+
+var exteriorMesh = topojson.mesh(world, world.objects.countries, exteriorOnly),
+interiorMesh = topojson.mesh(world, world.objects.countries, interiorOnly);
+function exteriorOnly(a,b) { return a == b; }
+function interiorOnly(a,b) { return a !== b; }
+
+---
+title: micro-optimized while loop
+tags: js
+---
+var i = -1,
+    n = array.length,
+    o;
+while (++i < n) {
+  o = array[i];
+}
+
+
+---
+title: rebase notes
+tags: git
+---
+Yes, you can definitely fuck things up when rebasing—though note that you can always git rebase --abort and then git reset … to get things back to the previous state. And likewise assuming you pushed to your branch before starting the rebase, you can always revert back to your previous state even after you complete a (botched) rebase.
+
+It is, however, harder to recover from force-pushing a bad rebase. So definitely use git diff master after rebasing to verify that the result of your rebase is as-expected.
+
+
+---
+title: for loop
+tags: js
+---
+for (var i = 0, n = buttons.length; i < n; ++i) {
+
+}
+
+
+---
+title: D3 Responsive Bar Chart
+tags: d3, js
+---
+(function() {
+require(["foundation/main"], function() {
+  require(["d3/3"], pageReady);
+});
+
+function pageReady(d3) {
+  var graphic = d3.select("#g-graphic"), // for embeds, use a more unique slug!
+      assets = graphic.attr("data-assets");
+
+  var outerWidth, outerHeight, margin, width, height;
+
+  var x = d3.scale.ordinal();
+
+  var y = d3.scale.linear();
+
+  var xAxis = d3.svg.axis()
+      .scale(x)
+      .orient("bottom");
+
+  var yAxis = d3.svg.axis()
+      .scale(y)
+      .orient("left");
+
+  var svg = graphic.append("svg");
+
+  var chart = svg.append("g");
+
+  d3.tsv(assets + "pensions.tsv", type, dataReady);
+
+  function dataReady(error, data) {
+    if (error) return console.error(error);
+
+    data.sort(function(a, b) { return a.year - b.year; });
+
+    x.domain(data.map(function(d) { return d.year; }));
+    y.domain([0, d3.max(data, function(d) { return d.total; })]);
+
+    var xAxisContainer = chart.append("g")
+        .attr("class", "axis axis--x");
+
+    var yAxisContainer = chart.append("g")
+        .attr("class", "axis axis--y")
+        .call(yAxis);
+
+    var totalBars = chart.selectAll(".bar")
+        .data(data)
+      .enter().append("rect")
+        .attr("class", "bar");
+
+    resize();
+    d3.select(window).on("resize", resize);
+
+    function resize() {
+      console.log("resize");
+
+      outerWidth = graphic.node().getBoundingClientRect().width;
+      outerHeight = 400;
+      margin = {top: 20, right: 30, bottom: 30, left: 80};
+      width = outerWidth - margin.left - margin.right;
+      height = outerHeight - margin.top - margin.bottom;
+
+      svg
+          .attr("width", outerWidth)
+          .attr("height", outerHeight);
+
+      chart
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      x.rangeRoundBands([0, width], .1);
+
+      y.range([height, 0]);
+
+      xAxisContainer
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+      yAxisContainer
+        .call(yAxis);
+
+      totalBars
+        .attr("x", function(d) { return x(d.year); })
+        .attr("y", function(d) { return y(d.total); })
+        .attr("height", function(d) { return height - y(d.total); })
+        .attr("width", x.rangeBand());
+
+    }
+  }
+}
+
+function type(d) {
+  d.total = +d.total;
+  d.year = +d.year;
+  return d;
+}
+
+})();
+
+
+---
+title: SVG Move to front
+tags: d3, js
+---
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
+
+
+---
+title: merging a data set based on existing data attributes of the html
+tags: d3, js
+---
+var designer = graphic.selectAll(".g-designer")
+   .data(designers, function(d) { return d ? d.n : this.getAttribute("data-designer"); })
+   .style("width", width + "px");
+
+
+---
+title: Setting the data in a data join to data attributes
+tags: d3, js
+---
+var sequence = d3.selectAll(".video-sequence")
+    .datum(function() {
+      return {
+        first: !this.previousElementSibling,
+        audio: this.getAttribute("data-audio"),
+        length: this.querySelectorAll(".video").length
+      };
+    });
+
+
+---
+title: Get duration of movie in seconds
+tags: ffmpeg
+---
+ffprobe -loglevel error -show_streams videos/untitled.mov | grep duration | cut -f2 -d= | sed -n 2p
+
+
+---
+title: Get thumbnail images for a video
+tags: ffmpeg
+---
+
+ffmpeg -i inputfile.avi -r 30 image-%3d.jpeg
+
+
+---
+title: Filter geometry and create a new shapefile based on an attribute query
+tags: gdal
+---
+ogr2ogr -where "scalerank < 4" output.shp input.shp
+ogr2ogr -where "pop_max > 2000000 AND sov_a3!='RUS'" output.shp input.shp
+
+
+---
+title: Inspect a shapefile attributes
+tags: gdal
+---
+ogrinfo -al input.shp
+
+
+---
+title: Clip geometry to a bounding box
+tags: gdal
+---
+ogr2ogr -clipsrc 55.751 30.312 59.939 37.618
+
+
+---
+title: Overwrite a file with gdal
+tags: gdal
+---
+ogr2ogr -overwrite -f "ESRI Shapefile" $@ $< -clipsrc xmin ymin xmax ymax
+
+
+---
+title: Topojson clip extent
+tags: gdal
+---
+topojson \
+    -o $@ \
+    -q 1e5 \
+    --projection='d3.geo.mercator() \
+      .center([114.286, 11.053]) \
+      .scale(2000) \
+      .translate([0, 0]) \
+      .clipExtent([[-500, -575], [500, 575]])' \
+    -- \
+    land=build/ne_10m_land.shp \
+    countries=build/ne_10m_admin_0_countries_lakes.shp \
+    shallows=data/shallows.json
+
+
+topojson -- shp/us/roads.shp | bin/topomerge roads > topo/us-roads.json
+
+
+---
+title: Show git log
+tags: git
+---
+git log -p
+
+
+---
+title: Switch branches
+tags: git
+---
+git checkout alluvial
+
+
+---
+title: Delete local branch
+tags: git
+---
+git branch -d beads
+
+
+---
+title: Delete remote branch:
+tags: git
+---
+git push origin :beads
+
+
+---
+title: Lists all branches, shows which one you're on.
+tags: git
+---
+git branch
+
+
+---
+title: Makes a new branch based on the one you're on.
+tags: git
+---
+git branch new-branch
+
+
+---
+title: Push your new branch to the remote branch origin/new-feature
+tags: git
+---
+git push -u origin new-feature
+
+
+---
+title: this will pull changes from the branch "candidate-pages" and apply them to my branch, and apply then before my edits.
+tags: git
+---
+git rebase candidate-pages
+
+
+---
+title: pushes local to remote
+tags: git
+---
+git push origin candidate-pages-shan
+
+
+---
+title: deletes entire branch remotely
+tags: git
+---
+git push origin :candidate-pages-shan
+
+
+---
+title: First prerequisite
+tags: make
+---
+$<
+
+
+---
+title: All prerequisites with spaces in between
+tags: make
+---
+$^
+
+
+---
+title: Target file
+tags: make
+---
+$@
+
+
+---
+title: Put the output from a shell script into a make rule
+tags: make
+---
+$(shell ./tilelist)
+
+
+---
+title: Run command and store as a var
+tags: make
+---
+TODAY = $(shell date "+%Y-%m-%d")
+TODAYS_FILE = working/node/$(TODAY).csv
+
+
+---
+title: Update Config Date from Makefile
+tags: make
+---
+cat config.yml | sed -e "s/date:.*/date: `date '+%B %e, %Y'`/" > config.yml
+
+---
+title: Scrape some webpages
+tags: node js
+---
+
+#!/usr/bin/env node
+
+var request = require("request"),
+    fs = require("fs"),
+    jsdom = require("jsdom"),
+    queue = require("queue-async"),
+    md5 = require("MD5");
+
+// This is a way of caching your requests locally to speed up development.
+// There is no check to see if the page has been updated since it was cached.
+// So, If the remote pages are changing frequently, disable this local cache.
+var useCache = true,
+    cacheDir = __dirname + "/cache/";
+
+// Create the cache folder if it doesn’t already exist.
+if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+
+// Number of concurrent requests
+var q = queue(10);
+
+// Adding the urls to fetch and the function to process them
+q.defer(getTitle, "https://www.google.com/");
+q.defer(getTitle, "http://www.nytimes.com/");
+q.defer(getTitle, "http://www.yahoo.com/");
+
+// When everything is all done
+q.awaitAll(function(error, results) {
+  console.log("all done!");
+});
+
+
+//
+// This is a simple stub function that just logs the title of the page.
+//
+function getTitle(url, callback) {
+  fetch(url, function(error, content) {
+    jsdom.env(content, function(errors, window) {
+        console.warn("received: ", window.document.title);
+        window.close();
+        callback(null);
+      }
+    );
+  });
+}
+
+
+//
+// Fetching and caching
+// You probably won't need to look down here
+//
+function fetch(url, callback) {
+  fs.exists(filePath(url), function(exists) {
+    return ((exists && useCache) ? fetchFile : fetchHttp)(url, function(error, content) {
+      if (error) return callback(error);
+      callback(null, content);
+    });
+  });
+}
+
+function fetchHttp(url, callback) {
+  console.warn("fetching " + url);
+  request(url, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      fs.writeFile(filePath(url), body, "utf-8", function(error) {
+        if (error) return callback(error);
+        callback(null, body);
+      });
+    }
+  })
+}
+
+function fetchFile(url, callback) {
+  console.warn("fetching http://www.imdb.com/" + url + " (cached)");
+  fs.readFile(filePath(url), "utf-8", callback);
+}
+
+function filePath(url) {
+  return cacheDir + md5(url) + ".html";
+}
+
+
+---
+title: Default Makefile
+tags: make
+---
+# Use cat in development for easier debugging.
+# COMPILE = cat >
+
+# Use uglify in production so that your code is smaller.
+COMPILE = node_modules/.bin/uglifyjs -c -m -o
+
+GENERATED_FILES = \
+  .git/hooks/pre-commit \
+  .git/hooks/post-rewrite \
+  public/_assets/runtime.js
+
+.PHONY: all clean
+
+all: $(GENERATED_FILES)
+
+clean:
+  rm -rf -- $(GENERATED_FILES) build
+
+public/_assets/runtime.js: $(shell node_modules/.bin/smash --list --ignore-missing src/runtime.js)
+  node_modules/.bin/smash src/runtime.js | $(COMPILE) $@
+
+
+---
+title: Optimize png
+tags: make
+---
+optipng $@
+
+
+---
+title: Pulling out some files with wildcards
+tags: make
+---
+IMAGE_SOURCES = $(wildcard source_images/*.jpg)
+IMAGES = $(basename $(notdir $(IMAGE_SOURCES)))
+COMETS = $(basename $(notdir $(wildcard source_comets/*.png)))
+
+
+---
+title: Prefix or suffixes to list of files
+tags: make
+---
+$(addprefix public/_big_assets/small/,$(addsuffix .jpg,$(IMAGES)))
+
+
+---
+title: Image sprite of images, grouped by first word before hyphen
+tags: make
+---
+public/_big_assets/sequences/large/%.jpg: source_sequences/%-*
+  @mkdir -p $(dir $@)
+  gm montage -tile 4x -geometry 1150x -quality 50 $^ $@
+
+
+---
+title: Resize images
+tags: make
+---
+public/_big_assets/medium/%.jpg: source_images/%.jpg
+  @mkdir -p $(dir $@)
+  gm convert -quality 50 -geometry 800x1000 $< $@
+
+
+---
+title: Resize images the correct way
+tags: make
+---
+IMAGE_SOURCES = \
+  $(shell ls source/*.jpg)
+
+GENERATED_FILES = \
+  $(IMAGE_SOURCES:source/%=public/_big_assets/small/%) \
+  $(IMAGE_SOURCES:source/%=public/_big_assets/medium/%) \
+  $(IMAGE_SOURCES:source/%=public/_big_assets/large/%) \
+
+all: $(GENERATED_FILES)
+
+clean:
+  rm -rf -- $(GENERATED_FILES)
+
+.SECONDARY:
+
+public/_big_assets/small/%.jpg: source/%.jpg
+  mkdir -p public/_big_assets/small
+  gm convert -geometry 600 $< $@
+
+public/_big_assets/medium/%.jpg: source/%.jpg
+  mkdir -p public/_big_assets/medium
+  gm convert -geometry 900 $< $@
+
+public/_big_assets/large/%.jpg: source/%.jpg
+  mkdir -p public/_big_assets/large
+  gm convert -geometry 1400 $< $@
+
+---
+title: simple d3 node script
+tags: d3 javascript
+---
+#!/usr/bin/env node
+
+var fs = require("fs"),
+    d3 = require("d3");
+
+var formatDateTime = d3.time.format.iso;
+
+var normalStatePostals = d3.set();
+
+console.warn("reading build/senate-likelihood-all.tsv");
+var chances = d3.csv.parse(fs.readFileSync("data/data.csv", "utf8"), type);
+
+fs.writeFileSync("public/_assets/merged.json", JSON.stringify(merged), "utf8");
+
+function type(d) {
+  return d;
+}
+
+---
+title: node package list for "package.json"
+tags: node
+---
+{
+  "name": "anonymous",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "smash": "0.0",
+    "uglify-js": "2"
+  }
+}
+
+
+---
+title: Draw a world map with a node script to an image
+tags: d3 javascript
+---
+
+#!/usr/bin/env node
+
+var fs = require("fs"),
+    d3 = require("d3"),
+    topojson = require("topojson"),
+    Canvas = require("canvas");
+
+require("d3-geo-projection")(d3);
+
+var width = 1050,
+    height = 525;
+
+var Image = Canvas.Image,
+    canvas = new Canvas(width, height),
+    context = canvas.getContext('2d');
+
+var world = JSON.parse(fs.readFileSync('public/_assets/map.json', 'utf8'));
+
+var worldCountries = topojson.feature(world, world.objects.countries);
+// removing antarctica
+worldCountries.features = worldCountries.features.filter(function(d) { return d.id !== "ATA"; });
+
+var projection = d3.geo.robinson()
+    .precision(.1)
+    .scale((width + 1) / 1.7 / Math.PI)
+    .translate([width / 2, height / 1.7]);
+
+var path = d3.geo.path()
+    .projection(projection)
+    .context(context);
+
+worldCountries.features.forEach(function(d) {
+  if (centroids.has(d.id)) { d.centroid = projection(centroids.get(d.id)); }
+  else { d.centroid = path.centroid(d) }
+});
+
+context.fillStyle = "#fff";
+context.fillRect(0, 0, width, height);
+
+context.beginPath();
+context.lineWidth = 1;
+context.fillStyle = "#ddd";
+context.strokeStyle = "#fff";
+path(worldCountries);
+context.fill();
+context.stroke();
+
+var out = fs.createWriteStream("public/_assets/world.jpg"),
+    stream = canvas.jpegStream({
+      quality: 85
+    });
+
+stream.on("data", function(chunk){
+  out.write(chunk);
+});
+
+
+---
+title: Get the centroid of the largest polygon instead of the complete country
+tags: d3 javascript
+---
+svg.append("g").selectAll("circle")
+          .data(countries.features)
+        .enter().append("circle")
+          .attr("transform", function(d) {
+            var c;
+            if (d.geometry.type === "Polygon") c = path.centroid(d);
+            else { // find largest polygon and compute its centroid
+              d.geometry.coordinates.forEach(function(p) { p.area = path.area({type: "Polygon", coordinates: p}); });
+              var p = d.geometry.coordinates.reduce(function(p, v) { return p.area < v.area ? v : p; });
+              c = path.centroid({type: "Polygon", coordinates: p});
+            }
+            return "translate(" + c + ")";
+          })
+          .attr("r", 2.5);
+
+
+---
+title: Encode video files at different sizes
+tags: make ffmpeg
+---
+
+VIDEO_SOURCES = $(shell ls build/*.mov)
+
+SMALL_WIDTH = 600
+LARGE_WIDTH = 900
+
+GENERATED_FILES = \
+  $(VIDEO_SOURCES:build/%.mov=public/_assets/%-600.jpg) \
+  $(VIDEO_SOURCES:build/%.mov=public/_assets/%-600.mp4) \
+  $(VIDEO_SOURCES:build/%.mov=public/_assets/%-600.webm) \
+  $(VIDEO_SOURCES:build/%.mov=public/_assets/%-900.jpg) \
+  $(VIDEO_SOURCES:build/%.mov=public/_assets/%-900.mp4) \
+  $(VIDEO_SOURCES:build/%.mov=public/_assets/%-900.webm)
+
+all: $(GENERATED_FILES)
+
+clean:
+  rm -rf -- $(GENERATED_FILES)
+
+.SECONDARY:
+
+public/_assets/%-600.jpg: build/%.mov
+  mkdir -p public/_assets
+  ffmpeg -i $< -ss 00:00:03.00 -vframes 1 -y -vf scale=$(SMALL_WIDTH):-1 $@
+
+public/_assets/%-600.mp4: build/%.mov
+  mkdir -p public/_assets
+  ffmpeg -i $< -vcodec libx264 -acodec libfaac -pix_fmt yuv420p -q:v 4 -q:a 100 -threads 0 -y -vf scale=$(SMALL_WIDTH):-1 $@
+
+public/_assets/%-600.webm: build/%.mov
+  mkdir -p public/_assets
+  ffmpeg -i $< -vcodec libvpx -acodec libvorbis -crf 12 -b:v 1.5M -q:a 100 -y -vf scale=$(SMALL_WIDTH):-1 $@
+
+public/_assets/%-900.jpg: build/%.mov
+  mkdir -p public/_assets
+  ffmpeg -i $< -ss 00:00:03.00 -vframes 1 -y -vf scale=$(LARGE_WIDTH):-1 $@
+
+public/_assets/%-900.mp4: build/%.mov
+  mkdir -p public/_assets
+  ffmpeg -i $< -vcodec libx264 -acodec libfaac -pix_fmt yuv420p -q:v 4 -q:a 100 -threads 0 -y -vf scale=$(LARGE_WIDTH):-1 $@
+
+public/_assets/%-900.webm: build/%.mov
+  mkdir -p public/_assets
+  ffmpeg -i $< -vcodec libvpx -acodec libvorbis -crf 12 -b:v 1.5M -q:a 100 -y -vf scale=$(LARGE_WIDTH):-1 $@
+
+---
+title: Get a list of unique values for a data column
+tags: d3 js
+---
+d3.set(rows.map(function(d) { return d.contributor_name; })).values();
+
+
+---
+title: Change permissions of a generated file to read only
+tags: make bash
+---
+rm -f $@
+bin/render-template src/index.ejs > $@
+chmod u-w $@
+
+---
+title: Process a folder of images with make
+tags: make
+---
+ORIGINAL_IMAGES = $(wildcard build/*.jpg)
+FINAL_IMAGES = $(patsubst build/%.jpg,public/_assets/images/%.jpg,$(ORIGINAL_IMAGES))
+
+GENERATED_FILES = \
+  $(FINAL_IMAGES)
+
+.PHONY: all clean
+
+all: $(GENERATED_FILES)
+
+clean:
+  rm -rf -- $(GENERATED_FILES) build
+
+public/_assets/images/%.jpg: build/%.jpg
+  gm convert -size 90x -normalize -resize 90x $< $@
+
+---
+title: Download a list of images
+tags: node js
+---
+
+#!/usr/bin/env node
+
+var request = require("request"),
+    fs = require("fs"),
+    queue = require("queue-async");
+
+var data = JSON.parse(fs.readFileSync("build/images.json", "utf8"));
+
+// Number of concurrent requests
+var q = queue(10),
+    count = 0;
+
+var baseUrl = "http://nyt-notes-08.nytimes.com/person_images/eighthave/"
+
+console.log(data.length)
+
+// Adding the urls to fetch and the function to process them
+data.forEach(function(d) {
+  if (d.imageSlug) {
+    if (!fs.existsSync("build/" + d.imageSlug)) {
+      q.defer(download, baseUrl + d.imageSlug, d.imageSlug);
+    };
+  };
+
+});
+
+// When everything is all done
+q.awaitAll(function(error, results) {
+  console.log("done");
+});
+
+function download(uri, filename, callback){
+  console.log(count++)
+  request.head(uri, function(err, res, body){
+    request(uri).pipe(fs.createWriteStream("build/" + filename), {flags: "wb"}).on("close", callback);
+  });
+};
