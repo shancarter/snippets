@@ -2,24 +2,25 @@
 title: es6 module web component
 tags: js
 ---
+// We are assuming you have access to shadowDOM (which is in progress in webkit and mozilla).
+// We are assuming you have custom elements (which is also in progress).
+// This class goes into global space, but when modules (which are also in progress) are supported, this could be imported.
+// Because there is no consensus among vendors on html imports, that is not used at all.
 
-var html = `
-  <style>
-    :host {
-      display: block;
-    }
-  </style>
-  <div id="quotes"><div>
-`;
-
-class VectorAnnotation extends HTMLElement {
-
-  var importingDocument = document;
-  var localDocument = (document._currentScript || document.currentScript).ownerDocument;
+class TestComponent extends HTMLElement {
+  static get is() { return 'test-component'; }
 
   //Create
   createdCallback() {
-    this.createShadowRoot().innerHTML = html;
+    this.createShadowRoot().innerHTML = `
+    <style>
+      :host {
+        color: red;
+      }
+    </style>
+    <div><div>
+    `;
+    this.shadowRoot.querySelector('div').textContent = 'Hello';
   };
 
   //Update
@@ -27,7 +28,7 @@ class VectorAnnotation extends HTMLElement {
 
 }
 
-document.registerElement('vector-annotation', VectorAnnotation);
+document.registerElement(TestComponent.is, TestComponent);
 
 
 ---
