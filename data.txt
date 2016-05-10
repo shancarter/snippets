@@ -1,8 +1,46 @@
 ---
+title: simple web component
+tags: html
+---
+<template>
+  <style>
+    div {
+      color: red;
+    }
+  </style>
+  <div>Vectors</div>
+</template>
+
+<script>
+(function() {
+  var owner =  (document._currentScript || document.currentScript).ownerDocument;
+  var template = owner.querySelector('template').content;
+  var ElProto = Object.create(HTMLElement.prototype);
+
+  //Created
+  ElProto.createdCallback = function() {
+    var shadowRoot = this.createShadowRoot();
+    var clone = importingDocument.importNode(template, true);
+    shadowRoot.appendChild(clone);
+  };
+
+  //Update
+  ElProto.attributeChangedCallback = function(attr, oldVal, newVal) {
+    if (attr === 'who') {
+
+    }
+  };
+
+  //Register
+  window.MyElement = importingDocument.registerElement('vector-annotation', { prototype: ElProto });
+
+})();
+</script>
+
+---
 title: interior and exterior lines
 tags: topojson
 ---
-
 var exteriorMesh = topojson.mesh(world, world.objects.countries, exteriorOnly),
 interiorMesh = topojson.mesh(world, world.objects.countries, interiorOnly);
 function exteriorOnly(a,b) { return a == b; }
