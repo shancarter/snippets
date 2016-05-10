@@ -26,9 +26,6 @@ tags: html
 
   //Update
   ElProto.attributeChangedCallback = function(attr, oldVal, newVal) {
-    if (attr === 'who') {
-
-    }
   };
 
   //Register
