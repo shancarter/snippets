@@ -13,11 +13,13 @@ tags: html
 
 <script>
 (function() {
-  var owner =  (document._currentScript || document.currentScript).ownerDocument;
-  var template = owner.querySelector('template').content;
+  
+  var importingDocument = document;
+  var doc =  (document._currentScript || document.currentScript).ownerDocument;
+  var template = doc.querySelector('template').content;
   var ElProto = Object.create(HTMLElement.prototype);
 
-  //Created
+  //Create
   ElProto.createdCallback = function() {
     var shadowRoot = this.createShadowRoot();
     var clone = importingDocument.importNode(template, true);
@@ -26,13 +28,14 @@ tags: html
 
   //Update
   ElProto.attributeChangedCallback = function(attr, oldVal, newVal) {
+
   };
 
-  //Register
   window.MyElement = importingDocument.registerElement('vector-annotation', { prototype: ElProto });
 
 })();
 </script>
+
 
 ---
 title: interior and exterior lines
