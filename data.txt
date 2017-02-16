@@ -851,3 +851,9 @@ function download(uri, filename, callback){
     request(uri).pipe(fs.createWriteStream("build/" + filename), {flags: "wb"}).on("close", callback);
   });
 };
+
+---
+title: Convert a video file to a gif
+tags: gif ffmpeg
+---
+ffmpeg -i writing-activations.mov -vf scale=600:-1 -r 10 -f image2pipe -vcodec ppm - | gm convert -delay 5 -loop 0 - writing-activations.gif
