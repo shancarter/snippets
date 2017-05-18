@@ -857,3 +857,39 @@ title: Convert a video file to a gif
 tags: gif ffmpeg
 ---
 ffmpeg -i writing-activations.mov -vf scale=600:-1 -r 10 -f image2pipe -vcodec ppm - | gm convert -delay 5 -loop 0 - writing-activations.gif
+
+---
+title: Rollup config for svelte
+tags: svelte
+---
+// import buble from 'rollup-plugin-buble';
+import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import svelte from 'rollup-plugin-svelte';
+
+export default {
+  entry: 'components/index.js',
+  dest: "public/bundle.js",
+  sourceMap: true,
+  format: 'iife',
+  moduleName: "bundle",
+  plugins: [
+    svelte({
+      // By default, all .html and .svelte files are compiled
+      extensions: ['.html'],
+      // You can restrict which files are compiled
+      // using `include` and `exclude`
+      include: 'components/**.html',
+    }),
+    resolve({
+      jsnext: true
+      // browser: true,
+    }),
+    // buble({
+    //   exclude: 'node_modules',
+    //   target: { chrome: 52, safari: 8, edge: 13, firefox: 48, }
+    // }),
+    commonjs()
+  ]
+};
+
